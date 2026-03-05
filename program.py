@@ -23,12 +23,11 @@ data2_unique = data2.drop_duplicates(subset=['Name'])
 data = pd.merge(data1, data2_unique[['Name', 'Rating']], on='Name',how='inner') # inner= bara spel som finns i båda filerna
 print(data)
 
-"""
 #kollar shape på dataframe
 print(data1.shape)#utifrån .shape funktionern ser vi att det finns 16719 rader och 11 kolumner i dataframen
 print(data2.shape)
 print(data.shape)#finns 7912 rader och 12 kolumner i den nya dataframen efter merge
-"""
+
 #kollar efter saknade värden
 print(data.isnull().sum())
 #isnull().sum() visar att det finns saknade värden i "Year"(139), "Rating"(651) och "Publisher"(11), vi tar bort dem raderna
@@ -78,31 +77,57 @@ plt.scatter(data['Rating'], data['Global_Sales'])
 plt.xlabel('User Rating')
 plt.ylabel('Global Sales (millions)')
 plt.title('Global Sales vs User Rating')
+#idxmax hittar indexet på outlier genom att leta efter det största värdet, .loc plockar ut hela raden
+outlier = data.loc[data['Global_Sales'].idxmax()]
+#Skriver ut datan vi vill ha, så namn, rating och global sales, xytext + textcoords flyttar på texten så den inte hamnar rakt över punkten. 
+plt.annotate(outlier['Name'],
+             (outlier['Rating'], outlier['Global_Sales']),
+             xytext=(5,5),
+             textcoords='offset points')
 plt.show()
 
-#skapar en graf som visar år med flest spel släppta, mest populära genrer, plattformar och utgivare
+#graf för år med flest släppta spels
 data['Year'].value_counts().plot.bar(figsize=(7.5,3))
 plt.title('Number of Games Released per Year')
 plt.xlabel('Year')
 plt.ylabel('Number of Games')
 plt.show()
 
+#graf för genre med flest spel
 data['Genre'].value_counts().plot.bar(figsize=(7.5,3))
 plt.title('Number of Games per Genre')
 plt.xlabel('Genre')
 plt.ylabel('Number of Games')
 plt.show()
 
+#graf för platform med flest spel
 data['Platform'].value_counts().plot.bar(figsize=(7.5,3))
 plt.title('Number of Games per Platform')
 plt.xlabel('Platform')
 plt.ylabel('Number of Games')
 plt.show()
 
+#graf för publisher med flest spel
 data['Publisher'].value_counts().head(10).plot.bar(figsize=(7.5,3))
 plt.title('Top 10 Publishers by Number of Games')
 plt.xlabel('Publisher')
 plt.ylabel('Number of Games')
+plt.show()
+
+#graf för publisher som säljer bäst globalt
+publisher_sales = data.groupby('Publisher')['Global_Sales'].sum().sort_values(ascending=False).head(10)
+publisher_sales.plot.bar(figsize=(7.5,3))
+plt.title('Top 10 Publishers per Global Sales')
+plt.xlabel('Publisher')
+plt.ylabel('Total Global Sales (millions)')
+plt.show()
+
+#graf för vilken plattform som säljer bäst globalt
+platform_sales = data.groupby('Platform')['Global_Sales'].sum().sort_values(ascending=False)
+platform_sales.plot.bar(figsize=(8,4))
+plt.title('Total Global Sales per Platform')
+plt.xlabel('Platform')
+plt.ylabel('Total Global Sales (millions)')
 plt.show()
 
 #graf för att jämföra global sales mellan olika genrer
@@ -114,6 +139,14 @@ plt.xlabel("Global sales (millions)")
 plt.ylabel("Genre")
 plt.gca().invert_yaxis() #inverterar y-axeln så att den mest sålda genren visas överst
 plt.tight_layout() #för att förbättra layouten
+plt.show()
+
+#graf för vilken genre som har högst genomsnittlig rating
+genre_rating = data.groupby("Genre")["Rating"].mean()
+genre_rating.plot(kind="bar")
+plt.title("Average Rating per Genre")
+plt.ylabel("Average Rating")
+plt.xlabel("Genre")
 plt.show()
 
 #visualisera med en heatmap för att se korrelationen mellan de olika variablerna
