@@ -7,9 +7,9 @@ import seaborn as sns
 #laddar in data
 data1 = pd.read_csv('video_games_sales.csv')
 data2 = pd.read_csv('backloggd_games.csv')
-#data.info()
 
 #kollar på kolumnnamnen i båda dataframes för att se att namnen stämmer överens
+#Här gick vi manuellt in i backlogged_games.csv och ändrade kolumnnamnet "Name" så att det matchar med "Name" i video_games_sales.csv
 print(data1.columns)
 print(data2.columns)
 
@@ -29,14 +29,11 @@ print(data1.shape)#utifrån .shape funktionern ser vi att det finns 16719 rader 
 print(data2.shape)
 print(data.shape)#finns 7912 rader och 12 kolumner i den nya dataframen efter merge
 """
-
-#kollar på de 5 första raderna i dataframen
-print(data.head())
-
 #kollar efter saknade värden
 print(data.isnull().sum())
-#isnull().sum() visar att det finns saknade värden i "Year" och "Publisher", vi tar bort dem raderna
+#isnull().sum() visar att det finns saknade värden i "Year"(139), "Rating"(651) och "Publisher"(11), vi tar bort dem raderna
 
+#tar bort rader med saknade värden i "Year", "Rating" och "Publisher"
 data = data.dropna(subset=['Year', 'Publisher', 'Rating'])
 #kontrollerar att de saknade värdena är borttagna
 print(data.isnull().sum())
@@ -44,6 +41,26 @@ print(data.shape) #kollar hur många rader och kolumner som är kvar efter bortt
 #vi vill ta bort "Rank" kolumnen eftersom den inte är relevant för vår analys
 data = data.drop(columns=['Rank'])
 print(data.shape) #kollar att "Rank" kolumnen är borttagen
+
+#kollar datatyperna i dataframen
+data.info()
+#konverterar "Year" kolumnen från float till integer
+data["Year"] = data["Year"].astype(int)
+#kontrollerar att "Year" kolumnen nu är en integer
+data.info()
+
+#kollar på de 5 första raderna i dataframen
+print(data.head())
+
+#genomsnittlig global försäljning per genre.
+print(data.groupby('Genre')['Global_Sales'].mean().sort_values(ascending=False))
+
+#gör en pivot table för att sammanfatta total försäljning per genre
+pivot = pd.pivot_table(data,
+                       values='Global_Sales',
+                       index='Genre',
+                       aggfunc='sum')
+print(pivot)
 
 #pieplot för att visa fördelning av försäljning
 #summerar försäljning per region
@@ -53,7 +70,7 @@ plt.pie(region_sales, labels=region_sales.index, autopct='%1.1f%%', startangle=1
 plt.title('Sales Distribution by Region')
 plt.axis('equal') #rund cirkel
 plt.show()
-""""
+
 #scatterplot för att se relationen mellan global sales och user rating
 #%matplotlib inline
 matplotlib.style.use('ggplot')
@@ -63,29 +80,41 @@ plt.ylabel('Global Sales (millions)')
 plt.title('Global Sales vs User Rating')
 plt.show()
 
-
 #skapar en graf som visar år med flest spel släppta, mest populära genrer, plattformar och utgivare
 data['Year'].value_counts().plot.bar(figsize=(7.5,3))
+plt.title('Number of Games Released per Year')
+plt.xlabel('Year')
+plt.ylabel('Number of Games')
 plt.show()
+
 data['Genre'].value_counts().plot.bar(figsize=(7.5,3))
+plt.title('Number of Games per Genre')
+plt.xlabel('Genre')
+plt.ylabel('Number of Games')
 plt.show()
+
 data['Platform'].value_counts().plot.bar(figsize=(7.5,3))
+plt.title('Number of Games per Platform')
+plt.xlabel('Platform')
+plt.ylabel('Number of Games')
 plt.show()
+
 data['Publisher'].value_counts().head(10).plot.bar(figsize=(7.5,3))
+plt.title('Top 10 Publishers by Number of Games')
+plt.xlabel('Publisher')
+plt.ylabel('Number of Games')
 plt.show()
 
 #graf för att jämföra global sales mellan olika genrer
 genre_sales = data.groupby('Genre')['Global_Sales'].sum().sort_values(ascending=False)
 plt.figure(figsize=(10,6))
 genre_sales.plot(kind="barh")
-
 plt.title("Global sales per genre")
 plt.xlabel("Global sales (millions)")
 plt.ylabel("Genre")
-plt.gca().invert_yaxis() 
-plt.tight_layout()
+plt.gca().invert_yaxis() #inverterar y-axeln så att den mest sålda genren visas överst
+plt.tight_layout() #för att förbättra layouten
 plt.show()
-
 
 #visualisera med en heatmap för att se korrelationen mellan de olika variablerna
 #skapar en variabel för numeriska kolumner
@@ -94,4 +123,3 @@ correlation = numerical_data.corr()
 plt.figure(figsize=(7.5,5))
 sns.heatmap(correlation,annot=True,linewidths=0.01,vmax=1,square=True,cbar=True)
 plt.show()
-"""
